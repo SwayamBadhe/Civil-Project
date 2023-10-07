@@ -52,7 +52,12 @@ while (True):
     def switch(calculation_type):        
 
         if (calculation_type == "Beam L" or calculation_type == "1"):
-            unsupported_length_m, yield_strength_MPa, partial_safety_factor, modulus_of_elasticity_N_per_mm2, bearing_support_width_mm = methods.getInitialValues()
+            initial_values = methods.getInitialValues()
+            unsupported_length_m = initial_values["unsupported_length_m"]
+            yield_strength_MPa = initial_values["yield_strength_MPa"]
+            partial_safety_factor = initial_values["partial_safety_factor"]
+            modulus_of_elasticity_N_per_mm2 = initial_values["modulus_of_elasticity_N_per_mm2"]
+            bearing_support_width_mm = initial_values["bearing_support_width_mm"]
             L = methods.calculate_effective_length(unsupported_length_m, bearing_support_width_mm)
             print(f"Effective length of Beam L (c/c of column support): {L} meters")
 

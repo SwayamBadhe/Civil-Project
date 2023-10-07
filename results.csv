@@ -1,7 +1,7 @@
 Parameter,Value
 Unsupported Length of the beam (m): ,20.0
-Yield strength of steel (MPa): ,200.0
-Partial Safety Factor: ,250.0
-Modulus of elasticity of Steel (N/mm^2): ,1.1
-Width of column or bearing support (mm): ,200000.0
-Effective length of Beam L (m): ,-180.0
+Yield strength of steel (MPa): ,250.0
+Partial Safety Factor: ,1.1
+Modulus of elasticity of Steel (N/mm^2): ,200000.0
+Width of column or bearing support (mm): ,200.0
+Effective length of Beam L (m): ,19.8

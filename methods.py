@@ -18,7 +18,14 @@ def ZpFunc(max_moment_kNm, partial_safety_factor, yield_strength_MPa):
 
 # -------get and set function for intial values (case 1)
 def getInitialValues():
-    return (g_unsupported_length_m, g_bearing_support_width_mm, g_yield_strength_MPa, g_partial_safety_factor, g_modulus_of_elasticity_N_per_mm2)
+    return {
+        "unsupported_length_m": g_unsupported_length_m,
+        "bearing_support_width_mm": g_bearing_support_width_mm,
+        "yield_strength_MPa": g_yield_strength_MPa,
+        "partial_safety_factor": g_partial_safety_factor,
+        "modulus_of_elasticity_N_per_mm2": g_modulus_of_elasticity_N_per_mm2
+    }
+
 
 def setInitialValues(unsupported_length_m, yield_strength_MPa, partial_safety_factor, modulus_of_elasticity_N_per_mm2, bearing_support_width_mm):
     global g_unsupported_length_m
