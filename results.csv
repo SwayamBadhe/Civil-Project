@@ -5,3 +5,21 @@ Partial Safety Factor: ,1.1
 Modulus of elasticity of Steel (N/mm^2): ,200000.0
 Width of column or bearing support (mm): ,200.0
 Effective length of Beam L (m): ,19.8
+------------------------------------------------------------
+Max Bending moment at Mid Span (kNm): ,7031.0
+Max Bending Moment at support (KNm): ,0.0
+Maximum Shear Force (Kn): ,1012.5
+------------------------------------------------------------
+Max Moment (kNm): ,7031.0
+Partial Safety Factor: ,1.1
+Yield Strength of Steel (MPa): ,250.0
+MAx Moment of mid nad support Moment: ,7031.0
+Plastic Section Modulus Required (mm^3): ,30936400.000000004
+------------------------------------------------------------
+Web Depth (mm): ,1640
+Moment of Inertia about major axis (Ix) (mm^4): ,29232874666.666656
+Moment of Inertia about weak or minor axis (Iy) (mm^4): ,325371546.6666667
+Epsilon: ,1.0
+Elastic Section Modulus (Ze) (mm^3): ,34391617.254901946
+Plastic Section Modulus (Zp) (mm^3): ,39034485.584313706
+Message: ,Provided section is ok
