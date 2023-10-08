@@ -2,7 +2,11 @@ import numpy as np
 import pandas as pd
 import methods
 
+# default value for calculated values here
+# make changes if necesssary
 Zp_case3 = 0
+web_depth_mm4 = 0
+epsilon4 = 0
 
 # Input data from the user
 def inputDefaultValues():
@@ -28,6 +32,12 @@ def input_plate_sizes():
     web_thickness_mm = float(input("Enter Plate Web Thickness (in mm): "))
 
     return (depth_mm, flange_width_mm, flange_thickness_mm, web_thickness_mm)
+
+def inputSectionClassification():
+    b_tf_ratio = float(input("Enter the value of Ratio b/tf: "))
+    d_tw_ratio = float(input("Enter the value of Ratio d/tw: "))
+    return (b_tf_ratio, d_tw_ratio)
+
 
 
 # Function to write data to CSV
@@ -57,11 +67,13 @@ while (True):
                                 (Type - Plastic Section)
                             4. Selection of suitable Plate Sizes
                                 (Type - Suitable Plate Sizes)
+                            5. Classification of Seciton
+                                (Type - Section Classification)
                             Enter your choice: 
                         ''')
 
     def switch(calculation_type): 
-        global Zp_case3     
+        global Zp_case3, web_depth_mm4, epsilon4  
 
         initial_values = methods.getInitialValues()
         unsupported_length_m = initial_values["unsupported_length_m"]
@@ -80,6 +92,10 @@ while (True):
         flange_width_mm = plate_size_initial_values["flange_width_mm"]
         flange_thickness_mm = plate_size_initial_values["flange_thickness_mm"]
         web_thickness_mm = plate_size_initial_values["web_thickness_mm"]
+
+        section_classification_initial_values = methods.getLocalValues5()
+        b_tf_ratio = section_classification_initial_values["b_tf_ratio"]
+        d_tw_ratio = section_classification_initial_values["d_tw_ratio"]
 
         if (calculation_type == "Beam L" or calculation_type == "1"):            
             L = methods.calculate_effective_length(unsupported_length_m, bearing_support_width_mm)
@@ -146,10 +162,10 @@ while (True):
             
             plate_properties = methods.calculate_plate_properties(depth_mm, flange_width_mm, flange_thickness_mm, web_thickness_mm, yield_strength_MPa)
 
-            web_depth_mm = plate_properties["web_depth_mm"]
+            web_depth_mm4 = web_depth_mm = plate_properties["web_depth_mm"]
             Ix = plate_properties["Ix"]
             Iy = plate_properties["Iy"]
-            epsilon = plate_properties["epsilon"]
+            epsilon4 = epsilon = plate_properties["epsilon"]
             Ze = plate_properties["Ze"]
             Zp = plate_properties["Zp"]
 
@@ -179,6 +195,46 @@ while (True):
 
             # Append data to CSV file
             append_to_csv('results.csv', data)
+        
+        elif (calculation_type == "Section Classification" or calculation_type == "5"):
+            section_classification_input_bool = input("Do you want to use preset values?: ")
+            if (section_classification_input_bool == "n" or section_classification_input_bool == "N"):
+                b_tf_ratio, d_tw_ratio = inputSectionClassification()
+                methods.setLocalValues5(b_tf_ratio, d_tw_ratio)
+
+            ratio_b2_tf = flange_width_mm / 2 / flange_thickness_mm
+            ratio_d_tw = web_depth_mm4 / web_thickness_mm
+            b_tf_x_e = b_tf_ratio * epsilon4
+
+            print(f"Ratio (b/2)/tf: {ratio_b2_tf}")
+            print(f"Ratio d/tw: {ratio_d_tw}")
+            print(f"b/tf X e: {b_tf_x_e}")
+
+            if (ratio_b2_tf <= (8.4 * epsilon4) and ratio_d_tw <= (84 * epsilon4)):
+                print("Section is plastic")
+                msg = "Section is plastic"
+            elif (ratio_b2_tf > (8.4 * epsilon4) and ratio_b2_tf <= b_tf_ratio and ratio_d_tw > (84 * epsilon4) and ratio_d_tw <= (d_tw_ratio * epsilon4)):
+                print("Section is compact")
+                msg = "Section is compact"
+            else:
+                print("Revise the section to make it plastic or compact")
+                msg = "Revise the section to make it plastic or compact"
+
+            data = [
+                ("Flange Width (mm): ", flange_width_mm),
+                ("Flange Thickness (mm): ", flange_thickness_mm),
+                ("Web Depth (mm): ", web_depth_mm4),
+                ("Web Thickness (mm): ", web_thickness_mm),
+                ("Epsilon: ", epsilon4),
+                ("Ratio (b/2)/tf: ", ratio_b2_tf),
+                ("Ratio d/tw: ", ratio_d_tw),
+                ("b/tf X e: ", b_tf_x_e),
+                ("Message: ", msg)
+            ]
+
+            # Append data to CSV file
+            append_to_csv('results.csv', data)
+            
 
 
     switch(calculation_type)

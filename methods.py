@@ -1,4 +1,6 @@
 # ------------------------------global variable declaration-----------------------------------
+# default value for input values here
+# make changes if necesssary
 g_unsupported_length_m = 20
 g_yield_strength_MPa = 250
 g_partial_safety_factor = 1.1
@@ -13,6 +15,9 @@ g_depth_mm = 1700
 g_flange_width_mm = 400
 g_flange_thickness_mm = 30
 g_web_thickness_mm = 34
+
+g_b_tf_ratio = 8.40
+g_d_tw_ratio = 84.0
 
 # Define calculation functions
 def calculate_effective_length(unsupported_length_m, bearing_support_width_mm):
@@ -117,3 +122,15 @@ def setLocalValues4(depth_mm, flange_width_mm, flange_thickness_mm, web_thicknes
     g_flange_width_mm = flange_width_mm
     g_flange_thickness_mm = flange_thickness_mm
     g_web_thickness_mm = web_thickness_mm
+
+# -------get and set function for Section Classification (case 5)
+def getLocalValues5():
+    return{
+        "b_tf_ratio": g_b_tf_ratio, 
+        "d_tw_ratio": g_d_tw_ratio
+    }
+
+def setLocalValues5(b_tf_ratio, d_tw_ratio):
+    global g_b_tf_ratio, g_d_tw_ratio
+    g_b_tf_ratio = b_tf_ratio
+    g_d_tw_ratio = d_tw_ratio

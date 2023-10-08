@@ -23,3 +23,13 @@ Epsilon: ,1.0
 Elastic Section Modulus (Ze) (mm^3): ,34391617.254901946
 Plastic Section Modulus (Zp) (mm^3): ,39034485.584313706
 Message: ,Provided section is ok
+------------------------------------------------------------
+Flange Width (mm): ,400
+Flange Thickness (mm): ,30
+Web Depth (mm): ,1640
+Web Thickness (mm): ,34
+Epsilon: ,1.0
+Ratio (b/2)/tf: ,6.666666666666667
+Ratio d/tw: ,48.23529411764706
+b/tf X e: ,8.4
+Message: ,Section is plastic
