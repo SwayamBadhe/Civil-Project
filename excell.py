@@ -38,7 +38,9 @@ def inputSectionClassification():
     d_tw_ratio = float(input("Enter the value of Ratio d/tw: "))
     return (b_tf_ratio, d_tw_ratio)
 
-
+def inputBeamOrPlate():
+    limiting_ratio_h_tw = float(input("Enter Liminting Ratio, h/tw: "))
+    return limiting_ratio_h_tw
 
 # Function to write data to CSV
 def write_to_csv(filename, data):
@@ -60,15 +62,17 @@ while (True):
 
     calculation_type = input('''
                             1. Effective length of Beam L (c/c of column support)
-                                (Type - Beam L)
+                                (Type - 1)
                             2. Input Calculations of Bending Moment 
-                                (Type - Bending Moment Input)
+                                (Type - 2)
                             3. Plastic Section Modulus Required,Zp
-                                (Type - Plastic Section)
+                                (Type - 3)
                             4. Selection of suitable Plate Sizes
-                                (Type - Suitable Plate Sizes)
-                            5. Classification of Seciton
-                                (Type - Section Classification)
+                                (Type - 4)
+                            5. Design of Beam or Plate Grinder
+                                (Type - 5)
+                            6. Classification of Seciton
+                                (Type - 6)
                             Enter your choice: 
                         ''')
 
@@ -93,7 +97,10 @@ while (True):
         flange_thickness_mm = plate_size_initial_values["flange_thickness_mm"]
         web_thickness_mm = plate_size_initial_values["web_thickness_mm"]
 
-        section_classification_initial_values = methods.getLocalValues5()
+        beam_or_plate_initial_values = methods.getLocalValues5()
+        limiting_ratio_h_tw = beam_or_plate_initial_values["limiting_ratio_h_tw"]
+
+        section_classification_initial_values = methods.getLocalValues6()
         b_tf_ratio = section_classification_initial_values["b_tf_ratio"]
         d_tw_ratio = section_classification_initial_values["d_tw_ratio"]
 
@@ -195,12 +202,36 @@ while (True):
 
             # Append data to CSV file
             append_to_csv('results.csv', data)
-        
-        elif (calculation_type == "Section Classification" or calculation_type == "5"):
+
+        elif (calculation_type == "Beam or Plate" or calculation_type == "5"):
+            beam_or_plate_input_bool = input("Do you want to use preset values?: ")
+            if (beam_or_plate_input_bool == "n" or beam_or_plate_input_bool == "N"):
+                limiting_ratio_h_tw = inputBeamOrPlate()
+                methods.setLocalValues5(limiting_ratio_h_tw)
+
+            h_tw_x_e = limiting_ratio_h_tw * epsilon4
+            section_h_tw_ratio = web_depth_mm4 / web_thickness_mm
+
+            print(f"h/tw X e: {h_tw_x_e}")
+            print(f"Section h/tw Ratio: {section_h_tw_ratio}")
+
+            data = [
+                ("Web Depth (mm): ", web_depth_mm4),
+                ("Web Thickness (mm): ", web_thickness_mm),
+                ("Epsilon: ", epsilon4),
+                ("Limiting Ratio (h/tw): ", limiting_ratio_h_tw),
+                ("h/tw X e: ", h_tw_x_e),
+                ("Section h/tw Ratio: ", section_h_tw_ratio)
+            ]
+
+            # Append data to CSV file
+            append_to_csv('results.csv', data)
+            
+        elif (calculation_type == "Section Classification" or calculation_type == "6"):
             section_classification_input_bool = input("Do you want to use preset values?: ")
             if (section_classification_input_bool == "n" or section_classification_input_bool == "N"):
                 b_tf_ratio, d_tw_ratio = inputSectionClassification()
-                methods.setLocalValues5(b_tf_ratio, d_tw_ratio)
+                methods.setLocalValues6(b_tf_ratio, d_tw_ratio)
 
             ratio_b2_tf = flange_width_mm / 2 / flange_thickness_mm
             ratio_d_tw = web_depth_mm4 / web_thickness_mm

@@ -19,6 +19,8 @@ g_web_thickness_mm = 34
 g_b_tf_ratio = 8.40
 g_d_tw_ratio = 84.0
 
+g_limiting_ratio_h_tw = 67
+
 # Define calculation functions
 def calculate_effective_length(unsupported_length_m, bearing_support_width_mm):
     L = unsupported_length_m - (bearing_support_width_mm / 1000)
@@ -123,14 +125,24 @@ def setLocalValues4(depth_mm, flange_width_mm, flange_thickness_mm, web_thicknes
     g_flange_thickness_mm = flange_thickness_mm
     g_web_thickness_mm = web_thickness_mm
 
-# -------get and set function for Section Classification (case 5)
+# -------get and set function for Section Classification (case 6)
 def getLocalValues5():
+    return{
+        "limiting_ratio_h_tw": g_limiting_ratio_h_tw
+    }
+
+def setLocalValues5(limiting_ratio_h_tw):
+    global g_limiting_ratio_h_tw
+    g_limiting_ratio_h_tw = limiting_ratio_h_tw
+
+# -------get and set function for Section Classification (case 6)
+def getLocalValues6():
     return{
         "b_tf_ratio": g_b_tf_ratio, 
         "d_tw_ratio": g_d_tw_ratio
     }
 
-def setLocalValues5(b_tf_ratio, d_tw_ratio):
+def setLocalValues6(b_tf_ratio, d_tw_ratio):
     global g_b_tf_ratio, g_d_tw_ratio
     g_b_tf_ratio = b_tf_ratio
     g_d_tw_ratio = d_tw_ratio
