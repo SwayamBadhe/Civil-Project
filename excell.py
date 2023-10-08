@@ -73,6 +73,8 @@ while (True):
                                 (Type - 5)
                             6. Classification of Seciton
                                 (Type - 6)
+                            7. Calculation of shear capacity of the section
+                                (Type - 7)
                             Enter your choice: 
                         ''')
 
@@ -266,6 +268,34 @@ while (True):
             # Append data to CSV file
             append_to_csv('results.csv', data)
             
+        elif (calculation_type == "Shear Capacity" or calculation_type == "7"):
+            Vd = methods.VdFunc(yield_strength_MPa, web_depth_mm4, web_thickness_mm, partial_safety_factor)
+
+            if (max_shear_force_kN < 0.6 * Vd):
+                msg1 = "Low shear load"
+            else:
+                msg1 = "High shear load"
+
+            if (msg1 == "Low shear load"):
+                msg2 = "Moment carrying capacity of section is calculated from step 7(i)"
+            else:
+                msg2 = "Moment Carrying capacity of section is calculated from step 7(ii)"        
+
+            print(f"Vd: {Vd}")
+            print(msg1)
+            print(msg2)
+
+            data = [
+                ("Vd: ", Vd),
+                ("Message1: ", msg1),
+                ("Message2: ", msg2)
+
+            ]
+
+            # Append data to CSV file
+            append_to_csv('results.csv', data)
+
+
 
 
     switch(calculation_type)

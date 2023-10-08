@@ -31,22 +31,16 @@ def ZpFunc(max_moment_kNm, partial_safety_factor, yield_strength_MPa):
     return Zp
 
 def calculate_plate_properties(depth_mm, flange_depth_mm, flange_thickness_mm, web_thickness_mm, yield_strength_MPa):
-    # Calculate web depth
     web_depth_mm = depth_mm - 2 * flange_thickness_mm
 
-    # Calculate Moment of Inertia about major axis (Ix)
     Ix = (flange_depth_mm * depth_mm ** 3 / 12) - (((flange_depth_mm - web_thickness_mm) * (depth_mm - 2 * flange_thickness_mm) ** 3) / 12)
 
-    # Calculate Moment of Inertia about weak or minor axis (Iy)
     Iy = ((2 * flange_thickness_mm * flange_depth_mm ** 3) / 12) + (((depth_mm - 2 * flange_thickness_mm) * web_thickness_mm ** 3) / 12)
 
-    # Calculate epsilon
     epsilon = (250 / yield_strength_MPa) ** 0.5
 
-    # Calculate Elastic Section Modulus (Ze)
     Ze = Ix / (depth_mm / 2)
 
-    # Calculate Plastic Section Modulus (Zp)
     Zp = Ze * 1.135
 
     return {
@@ -57,6 +51,12 @@ def calculate_plate_properties(depth_mm, flange_depth_mm, flange_thickness_mm, w
         "Ze": Ze,
         "Zp": Zp
     }
+
+def VdFunc(yield_strength_MPa, web_depth_mm4, web_thickness_mm, partial_safety_factor):
+    Vd = yield_strength_MPa * web_depth_mm4 * web_thickness_mm / (1000 * partial_safety_factor * (3 ** 0.5))
+    return Vd
+
+
 
 
 # -------get and set function for intial values (case 1)
