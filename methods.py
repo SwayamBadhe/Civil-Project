@@ -21,6 +21,12 @@ g_d_tw_ratio = 84.0
 
 g_limiting_ratio_h_tw = 67
 
+g_stiffner_ratio = 3
+
+g_c_d_ratio = 3
+g_width_of_flat_bs = 70
+g_thickness_of_flat_tq = 10
+
 # Define calculation functions
 def calculate_effective_length(unsupported_length_m, bearing_support_width_mm):
     L = unsupported_length_m - (bearing_support_width_mm / 1000)
@@ -56,8 +62,21 @@ def VdFunc(yield_strength_MPa, web_depth_mm4, web_thickness_mm, partial_safety_f
     Vd = yield_strength_MPa * web_depth_mm4 * web_thickness_mm / (1000 * partial_safety_factor * (3 ** 0.5))
     return Vd
 
+def moment_MdFunc(Zp3, yield_strength_MPa, partial_safety_factor):
+    moment_Md = ((1 * Zp3 * yield_strength_MPa) / partial_safety_factor) / 1000000
+    return moment_Md
 
+def moment_limitFunc(Ze, yield_strength_MPa, partial_safety_factor):
+    moment_limit = ((1.2 * Ze * yield_strength_MPa) / partial_safety_factor) / 1000000
+    return moment_limit
 
+def Tau_cr_eFunc(Kv, web_depth_mm4, web_thickness_mm):
+    Tau_cr_e = (Kv * 3.14**2 * 200000) / (12 * (1 - 0.3**2) * ((web_depth_mm4 / web_thickness_mm)**2))
+    return Tau_cr_e
+
+def IsFunc(thickness_of_flat_tq, width_of_flat_bs, web_thickness_mm):
+    Is = ((thickness_of_flat_tq * ((2 * width_of_flat_bs + web_thickness_mm) ** 3) / 12) - (thickness_of_flat_tq * (web_thickness_mm ** 3) / 12))
+    return Is
 
 # -------get and set function for intial values (case 1)
 def getInitialValues():
@@ -146,3 +165,28 @@ def setLocalValues6(b_tf_ratio, d_tw_ratio):
     global g_b_tf_ratio, g_d_tw_ratio
     g_b_tf_ratio = b_tf_ratio
     g_d_tw_ratio = d_tw_ratio
+
+# -------get and set function for Shear Buckling (case 9)
+def getLocalValues9():
+    return{
+        "stiffner_ratio": g_stiffner_ratio
+    }
+
+def setLocalValues9(stiffner_ratio):
+    global g_stiffner_ratio
+    g_stiffner_ratio = stiffner_ratio
+
+
+# -------get and set function for Minimum Stiffners (case 10.1)
+def setLocalValues10_1(c_d_ratio, width_of_flat_bs, thickness_of_flat_tq):
+    global g_c_d_ratio, g_width_of_flat_bs, g_thickness_of_flat_tq
+    g_c_d_ratio = c_d_ratio
+    g_width_of_flat_bs = width_of_flat_bs
+    g_thickness_of_flat_tq = thickness_of_flat_tq
+
+def getLocalValues10_1():
+    return {
+        "c_d_ratio": g_c_d_ratio,
+        "width_of_flat_bs": g_width_of_flat_bs,
+        "thickness_of_flat_tq": g_thickness_of_flat_tq
+    }

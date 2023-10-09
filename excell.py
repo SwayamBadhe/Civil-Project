@@ -7,6 +7,8 @@ import methods
 Zp_case3 = 0
 web_depth_mm4 = 0
 epsilon4 = 0
+max_moment_kNm3 = 0
+Ze4 = 0
 
 # Input data from the user
 def inputDefaultValues():
@@ -42,6 +44,18 @@ def inputBeamOrPlate():
     limiting_ratio_h_tw = float(input("Enter Liminting Ratio, h/tw: "))
     return limiting_ratio_h_tw
 
+def input_shear_buckling():
+    stiffner_ratio = float(input("Enter Stiffner ratio c/d"))
+    return stiffner_ratio
+
+def input_minimum_stiffners():
+    c_d_ratio = float(input("Enter the c/d ratio: "))
+    width_of_flat_bs = float(input("Enter the Width of Flat (bs) in mm: "))
+    thickness_of_flat_tq = float(input("Enter the Thickness of Flat (tq) in mm: "))
+
+    return (c_d_ratio, width_of_flat_bs, thickness_of_flat_tq)
+
+
 # Function to write data to CSV
 def write_to_csv(filename, data):
     df = pd.DataFrame(data, columns=['Parameter', 'Value'])
@@ -75,11 +89,17 @@ while (True):
                                 (Type - 6)
                             7. Calculation of shear capacity of the section
                                 (Type - 7)
+                            8. Check for Moment Caryying Capacity
+                                (Type - 8)
+                            9. Shear buckling design or Sheer Capacity
+                                (Type - 9)
+                            10. Design of Transverse or intermediate or vertical stiffners
+                                (Type - 10)
                             Enter your choice: 
                         ''')
 
     def switch(calculation_type): 
-        global Zp_case3, web_depth_mm4, epsilon4  
+        global Zp_case3, web_depth_mm4, epsilon4, max_moment_kNm3, Ze4
 
         initial_values = methods.getInitialValues()
         unsupported_length_m = initial_values["unsupported_length_m"]
@@ -105,6 +125,13 @@ while (True):
         section_classification_initial_values = methods.getLocalValues6()
         b_tf_ratio = section_classification_initial_values["b_tf_ratio"]
         d_tw_ratio = section_classification_initial_values["d_tw_ratio"]
+
+        shear_buckling_initial_values = methods.getLocalValues9()
+        stiffner_ratio = shear_buckling_initial_values["stiffner_ratio"]
+
+        
+
+
 
         if (calculation_type == "Beam L" or calculation_type == "1"):            
             L = methods.calculate_effective_length(unsupported_length_m, bearing_support_width_mm)
@@ -142,7 +169,7 @@ while (True):
             append_to_csv('results.csv', data)
         
         elif (calculation_type == "Plastic Section" or calculation_type == "3"):
-            max_moment_kNm = max(max_moment_mid_span_kNm, max_moment_support_kNm)
+            max_moment_kNm3 = max_moment_kNm = max(max_moment_mid_span_kNm, max_moment_support_kNm)
 
             # Calculate Zp
             Zp_case3 =  Zp = methods.ZpFunc(max_moment_kNm, partial_safety_factor, yield_strength_MPa)
@@ -175,7 +202,7 @@ while (True):
             Ix = plate_properties["Ix"]
             Iy = plate_properties["Iy"]
             epsilon4 = epsilon = plate_properties["epsilon"]
-            Ze = plate_properties["Ze"]
+            Ze4 = Ze = plate_properties["Ze"]
             Zp = plate_properties["Zp"]
 
             print(f"Web Depth: {web_depth_mm} mm")
@@ -294,6 +321,130 @@ while (True):
 
             # Append data to CSV file
             append_to_csv('results.csv', data)
+
+        elif (calculation_type == "Momement Carrying Capacity" or calculation_type == "8"):
+            moment_Md = methods.moment_MdFunc(Zp_case3, yield_strength_MPa, partial_safety_factor)
+            moment_limit = methods.moment_limitFunc(Ze4, yield_strength_MPa, partial_safety_factor)
+
+            print(f"Moment Md: {moment_Md} kNm")
+            print(f"Moment Limit: {moment_limit} kNm")
+
+            if min([moment_Md, moment_limit]) >= max_moment_kNm3:
+                msg = "Moment carrying capacity is safe"
+            else:
+                msg = "Revise the section"
+
+            print(msg)
+
+
+            data = [
+                ("Moment Md (kNm): ", moment_Md),
+                ("Moment Limit (kNm): ", moment_limit),
+                ("Message: ", msg)
+            ]
+
+            # Append data to CSV file
+            append_to_csv('results.csv', data)
+
+        elif (calculation_type == "9"):
+            shear_buckling_input_bool = input("Do you want to use preset values?: ")
+            if (shear_buckling_input_bool == "n" or shear_buckling_input_bool == "N"):
+                stiffner_ratio = float(input("Enter the stiffener ratio: "))
+                methods.setLocalValues9(stiffner_ratio)
+
+            Kv = 0
+            Tau_cr_e = 0
+            lw = 0
+            Tau_b = 0
+            Vcr = 0
+
+            if stiffner_ratio < 1:
+                Kv = 4 + (5.35 / stiffner_ratio**2)
+            else:
+                Kv = 5.35 + (4 / stiffner_ratio**2)
+
+
+            # Calculate Tau_cr_e
+            Tau_cr_e = methods.Tau_cr_eFunc(Kv, web_depth_mm4, web_thickness_mm)
+
+            # Calculate lw
+            lw = ((yield_strength_MPa /((3**0.5) * Tau_cr_e)))**0.5
+
+            # Calculate Tau_b
+            if lw <= 0.8:
+                Tau_b = yield_strength_MPa / (3**0.5)
+            elif 0.8 < lw < 1.2:
+                Tau_b = (1 - 0.8 * (lw - 0.8)) * (yield_strength_MPa / (3**0.5))
+            else:
+                Tau_b = (yield_strength_MPa / (3**0.5 * lw**2))
+
+            # Calculate Vcr
+            Vcr = (Tau_b * web_depth_mm4 * web_thickness_mm) / 1000
+
+            print(f"Kv: {Kv}")
+            print(f"Elastic Critical shear Stress of the web, Tau_cr_e: {Tau_cr_e} N/mm^2")
+            print(f"Non Dimensional Web Slenderness for shear buckling, lw: {lw}")
+            print(f"Shear Stress corresponding to web buckling, Tau_b: {Tau_b} N/mm^2")
+            print(f"Shear force corresponding to Web Buckling, Vcr: {Vcr} kN")
+
+            if (Vcr > max_shear_force_kN):
+                msg = "No need to provide intermediate stiffners for web buckling"
+            else:
+                msg = "Provide intermediate stiffners to improve the buckling strength of slender web"
+
+            print(msg)
+
+
+
+            data = [
+                ("Stiffener Ratio: ", stiffner_ratio),
+                ("Kv: ", Kv),
+                ("Elastic Critical shear Stress of the web, Tau_cr_e (N/mm^2): ", Tau_cr_e),
+                ("Non-Dimensional Web Slenderness for shear buckling, lw: ", lw),
+                ("Shear Stress corresponding to web buckling, Tau_b (N/mm^2): ", Tau_b),
+                ("Shear force corresponding to Web Buckling, Vcr (kN): ", Vcr),
+                ("Message: ", msg)
+            ]
+
+            # Append data to CSV file
+            append_to_csv('results.csv', data)
+
+        elif (calculation_type == "10"):
+            calculation_type10 = input('''
+                            1. Minimum Stiffners
+                                (Type - 1)
+                            Enter your choice: 
+                        ''')
+            
+            def innerSwitch(calculation_type10):
+
+                minimum_stiffners_initial_values = methods.getLocalValues10_1()
+                c_d_ratio = minimum_stiffners_initial_values["c_d_ratio"]
+                width_of_flat_bs = minimum_stiffners_initial_values["width_of_flat_bs"]
+                thickness_of_flat_tq = minimum_stiffners_initial_values["thickness_of_flat_tq"]
+
+                if (calculation_type10 == "1"):
+                    minimum_stiffners_input_bool = input("Do you want to use preset values?: ")
+                    if (minimum_stiffners_input_bool == "n" or minimum_stiffners_input_bool == "N"):
+                        c_d_ratio, width_of_flat_bs, thickness_of_flat_tq = input_minimum_stiffners()
+                        methods.setLocalValues10_1(c_d_ratio, width_of_flat_bs, thickness_of_flat_tq)
+                    
+                    c = c_d_ratio * web_depth_mm4
+                    Is = methods.IsFunc(thickness_of_flat_tq, width_of_flat_bs, web_thickness_mm)
+                 
+                    # Print the calculated values
+                    print(f"Spacing of Transverse stiffener (c): {c} mm")
+                    print(f"Second moment of inertia of the section (Is): {Is} mm^4")
+
+                    data = [
+                        ("Spacing of Transverse stiffener: ", c),
+                        ("Second moment of inertia of the section (Is): ", Is)
+                    ]
+
+                    # Append data to CSV file
+                    append_to_csv('results.csv', data)  
+
+            innerSwitch(calculation_type10)                
 
 
 

@@ -44,3 +44,18 @@ Message: ,Section is plastic
 Vd: ,7316.602502275803
 Message1: ,Low shear load
 Message2: ,Moment carrying capacity of section is calculated from step 7(i)
+------------------------------------------------------------
+Moment Md (kNm): ,7031.0
+Moment Limit (kNm): ,9379.53197860962
+Message: ,Moment carrying capacity is safe
+------------------------------------------------------------
+Stiffener Ratio: ,3
+Kv: ,5.794444444444444
+"Elastic Critical shear Stress of the web, Tau_cr_e (N/mm^2): ",449.72661987251524
+"Non-Dimensional Web Slenderness for shear buckling, lw: ",0.5665201914951055
+"Shear Stress corresponding to web buckling, Tau_b (N/mm^2): ",144.33756729740645
+"Shear force corresponding to Web Buckling, Vcr (kN): ",8048.262752503384
+Message: ,No need to provide intermediate stiffners for web buckling
+------------------------------------------------------------
+Spacing of Transverse stiffener: ,0.0
+Second moment of inertia of the section (Is): ,4357266.666666667
