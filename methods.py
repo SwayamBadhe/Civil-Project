@@ -27,6 +27,17 @@ g_c_d_ratio = 3
 g_width_of_flat_bs = 70
 g_thickness_of_flat_tq = 10
 
+g_F_c_d_compressive_stress = 224
+g_F_x_load_acting = 1000
+
+g_stiff_bearing_length_b1_at_support = 200
+g_stiff_bearing_length_b1_away_support = 0
+
+g_flat_width_bs = 150
+g_thickness_flat_tq = 20
+
+g_max_deflection = 50
+
 # Define calculation functions
 def calculate_effective_length(unsupported_length_m, bearing_support_width_mm):
     L = unsupported_length_m - (bearing_support_width_mm / 1000)
@@ -74,9 +85,32 @@ def Tau_cr_eFunc(Kv, web_depth_mm4, web_thickness_mm):
     Tau_cr_e = (Kv * 3.14**2 * 200000) / (12 * (1 - 0.3**2) * ((web_depth_mm4 / web_thickness_mm)**2))
     return Tau_cr_e
 
-def IsFunc(thickness_of_flat_tq, width_of_flat_bs, web_thickness_mm):
+def Is_immediateFunc(thickness_of_flat_tq, width_of_flat_bs, web_thickness_mm):
     Is = ((thickness_of_flat_tq * ((2 * width_of_flat_bs + web_thickness_mm) ** 3) / 12) - (thickness_of_flat_tq * (web_thickness_mm ** 3) / 12))
     return Is
+
+def FwFunc(n2, stiff_bearing_length_b1, web_thickness_mm4, yield_strength_MPa, partial_safety_factor):
+    Fw = (n2 + stiff_bearing_length_b1) * web_thickness_mm4 * yield_strength_MPa / (partial_safety_factor * 1000)
+    return Fw
+
+def IsFunc(thickness_flat_tq, flat_width_bs, web_thickness_mm4):
+    Is = ((thickness_flat_tq * ((flat_width_bs * 2 + web_thickness_mm4) ** 3) / 12) - (thickness_flat_tq * (web_thickness_mm4 ** 3) / 12))
+    return Is
+
+def D3_TefFunc(a_s, depth_mm, flange_thickness_mm):
+    D3_Teff = 0.34 * a_s * (depth_mm ** 3) * flange_thickness_mm
+    return D3_Teff
+
+def a_sFunc(LLT_ry):
+    if LLT_ry <= 50:
+        a_s = 0.006
+    elif 50 < LLT_ry <= 100:
+        a_s = 0.3 / LLT_ry
+    else:
+        a_s = 30 / (LLT_ry * LLT_ry)
+    
+    return a_s
+
 
 # -------get and set function for intial values (case 1)
 def getInitialValues():
@@ -190,3 +224,50 @@ def getLocalValues10_1():
         "width_of_flat_bs": g_width_of_flat_bs,
         "thickness_of_flat_tq": g_thickness_of_flat_tq
     }
+
+# -------get and set function for Buckling Check of Stiffners (case 10.5)
+def setLocalValues10_5(F_c_d_compressive_stress, F_x_load_acting):
+    global g_F_c_d_compressive_stress, g_F_x_load_acting
+    g_F_c_d_compressive_stress = F_c_d_compressive_stress
+    g_F_x_load_acting = F_x_load_acting
+
+def getLocalValues10_5():
+    return {
+        "F_c_d_compressive_stress": g_F_c_d_compressive_stress,
+        "F_x_load_acting": g_F_x_load_acting
+    }
+
+# -------get and set function for Stiff Bearing Length (case 10.6.1)
+def setLocalValues10_6_1(stiff_bearing_length_b1):
+    global g_stiff_bearing_length_b1_at_support, g_stiff_bearing_length_b1_away_support
+    g_stiff_bearing_length_b1_at_support = stiff_bearing_length_b1
+    g_stiff_bearing_length_b1_away_support = stiff_bearing_length_b1
+
+def getLocalValues10_6_1():
+    return {
+        "stiff_bearing_length_b1_at_support": g_stiff_bearing_length_b1_at_support,
+        "stiff_bearing_length_b1_away_support": g_stiff_bearing_length_b1_away_support
+    }
+
+# -------get and set function for Torisional Stiffeners (case 10.7)
+def setLocalValues10_7(flat_width_bs, thickness_flat_tq):
+    global g_flat_width_bs, g_thickness_flat_tq
+    g_flat_width_bs = flat_width_bs
+    g_thickness_flat_tq = thickness_flat_tq
+
+def getLocalValues10_7():
+    return {
+        "flat_width_bs": g_flat_width_bs,
+        "thickness_flat_tq": g_thickness_flat_tq
+    }
+
+# -------get and set function for Check for deflection (case 10.11)
+def setLocalValues11(max_deflection):
+    global g_max_deflection
+    g_max_deflection = max_deflection
+
+def getLocalValues11():
+    return {
+        "max_deflection": g_max_deflection
+    }
+

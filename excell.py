@@ -1,60 +1,22 @@
 import numpy as np
 import pandas as pd
 import methods
+import user_input
 
 # default value for calculated values here
 # make changes if necesssary
-Zp_case3 = 0
-web_depth_mm4 = 0
-epsilon4 = 0
-max_moment_kNm3 = 0
-Ze4 = 0
-
-# Input data from the user
-def inputDefaultValues():
-    unsupported_length_m = float(input("Enter the Unsupported Length of the beam (in meters): "))
-    yield_strength_MPa = float(input("Enter the Yield strength of steel (in MPa): "))
-    partial_safety_factor = float(input("Enter the Partial Safety Factor: "))
-    modulus_of_elasticity_N_per_mm2 = float(input("Enter the Modulus of elasticity of Steel (in N/mm^2): "))
-    bearing_support_width_mm = float(input("Enter the Width of column or bearing support (in millimeters): "))
-    
-    return (unsupported_length_m, yield_strength_MPa, partial_safety_factor, modulus_of_elasticity_N_per_mm2, bearing_support_width_mm)
-
-def input_bending_moment():
-    max_moment_mid_span_kNm = float(input("Enter Max Bending moment at Mid Span (in kNm): "))
-    max_moment_support_kNm = float(input("Enter Max Bending Moment at support (in kNm): "))
-    max_shear_force_kN = float(input("Enter Maximum Shear Force (in kN): "))
-
-    return (max_moment_mid_span_kNm, max_moment_support_kNm, max_shear_force_kN)  
-
-def input_plate_sizes():
-    depth_mm = float(input("Enter Plate Depth (in mm): "))
-    flange_width_mm = float(input("Enter Plate Flange Depth (in mm): "))
-    flange_thickness_mm = float(input("Enter Plate Flange Thickness (in mm): "))
-    web_thickness_mm = float(input("Enter Plate Web Thickness (in mm): "))
-
-    return (depth_mm, flange_width_mm, flange_thickness_mm, web_thickness_mm)
-
-def inputSectionClassification():
-    b_tf_ratio = float(input("Enter the value of Ratio b/tf: "))
-    d_tw_ratio = float(input("Enter the value of Ratio d/tw: "))
-    return (b_tf_ratio, d_tw_ratio)
-
-def inputBeamOrPlate():
-    limiting_ratio_h_tw = float(input("Enter Liminting Ratio, h/tw: "))
-    return limiting_ratio_h_tw
-
-def input_shear_buckling():
-    stiffner_ratio = float(input("Enter Stiffner ratio c/d"))
-    return stiffner_ratio
-
-def input_minimum_stiffners():
-    c_d_ratio = float(input("Enter the c/d ratio: "))
-    width_of_flat_bs = float(input("Enter the Width of Flat (bs) in mm: "))
-    thickness_of_flat_tq = float(input("Enter the Thickness of Flat (tq) in mm: "))
-
-    return (c_d_ratio, width_of_flat_bs, thickness_of_flat_tq)
-
+Zp_case3 =  39034485.58
+web_depth_mm4 = 1640
+epsilon4 = 1
+max_moment_kNm3 = 7031
+Ze4 = 34391617.25
+c_10_1 = 4920
+web_thickness_mm4 = 34
+d_tw_ratio10_3 = 48.24
+c_d_ratio_spacing10_3 = 3
+Vcr9 = 8048.26
+Is_intermediate10_1 = 4357266.67
+LLT_ry = 219.2
 
 # Function to write data to CSV
 def write_to_csv(filename, data):
@@ -63,13 +25,14 @@ def write_to_csv(filename, data):
 
 def append_to_csv(filename, data):
     df = pd.DataFrame(data, columns=['Parameter', 'Value'])
-    with open(filename, 'a', newline='') as file:
-        file.write("-" * 60 + "\n")  # Add separator line
-        df.to_csv(file, index=False, header=False)
+    separator = "-" * 60 + "\n"
+    with open(filename, 'a', newline='', encoding='utf-8') as file:
+        file.write(separator)  # Write separator line
+        df.to_csv(file, index=False, header=False, encoding='utf-8')
 
 initial_values_input_bool = input("Do you want to use preset values?: ")
 if (initial_values_input_bool == "n" or initial_values_input_bool == "N"):
-    unsupported_length_m, yield_strength_MPa, partial_safety_factor, modulus_of_elasticity_N_per_mm2, bearing_support_width_mm = inputDefaultValues()
+    unsupported_length_m, yield_strength_MPa, partial_safety_factor, modulus_of_elasticity_N_per_mm2, bearing_support_width_mm = user_input.inputDefaultValues()
     methods.setInitialValues(unsupported_length_m, yield_strength_MPa, partial_safety_factor, modulus_of_elasticity_N_per_mm2, bearing_support_width_mm)
 
 while (True):
@@ -95,11 +58,13 @@ while (True):
                                 (Type - 9)
                             10. Design of Transverse or intermediate or vertical stiffners
                                 (Type - 10)
+                            11. Check For Deflection
+                                (Type - 11)
                             Enter your choice: 
                         ''')
 
     def switch(calculation_type): 
-        global Zp_case3, web_depth_mm4, epsilon4, max_moment_kNm3, Ze4
+        global Zp_case3, web_depth_mm4, epsilon4, max_moment_kNm3, Ze4, Vcr9
 
         initial_values = methods.getInitialValues()
         unsupported_length_m = initial_values["unsupported_length_m"]
@@ -117,7 +82,7 @@ while (True):
         depth_mm = plate_size_initial_values["depth_mm"]
         flange_width_mm = plate_size_initial_values["flange_width_mm"]
         flange_thickness_mm = plate_size_initial_values["flange_thickness_mm"]
-        web_thickness_mm = plate_size_initial_values["web_thickness_mm"]
+        web_thickness_mm4 = web_thickness_mm = plate_size_initial_values["web_thickness_mm"]
 
         beam_or_plate_initial_values = methods.getLocalValues5()
         limiting_ratio_h_tw = beam_or_plate_initial_values["limiting_ratio_h_tw"]
@@ -127,10 +92,10 @@ while (True):
         d_tw_ratio = section_classification_initial_values["d_tw_ratio"]
 
         shear_buckling_initial_values = methods.getLocalValues9()
-        stiffner_ratio = shear_buckling_initial_values["stiffner_ratio"]
+        stiffner_ratio = shear_buckling_initial_values["stiffner_ratio"] 
 
-        
-
+        check_for_deflection_initial_values = methods.getLocalValues11()
+        max_deflection = check_for_deflection_initial_values["max_deflection"] 
 
 
         if (calculation_type == "Beam L" or calculation_type == "1"):            
@@ -153,7 +118,7 @@ while (True):
         elif (calculation_type == "Bending Moment" or calculation_type == "2"):
             bending_moment_input_bool = input("Do you want to use preset values?: ")
             if (bending_moment_input_bool == "n" or bending_moment_input_bool == "N"):
-                max_moment_mid_span_kNm, max_moment_support_kNm, max_shear_force_kN = input_bending_moment()
+                max_moment_mid_span_kNm, max_moment_support_kNm, max_shear_force_kN = user_input.input_bending_moment()
                 methods.setLocalValues2(max_moment_mid_span_kNm, max_moment_support_kNm, max_shear_force_kN)
             
             methods.setLocalValues3(max_moment_mid_span_kNm, max_moment_support_kNm)
@@ -193,7 +158,7 @@ while (True):
         elif (calculation_type == "Suitable Plate Sizes" or calculation_type == "4"):
             plate_size_input_bool = input("Do you want to use preset values?: ")
             if (plate_size_input_bool == "n" or plate_size_input_bool == "N"):
-                depth_mm, flange_width_mm, flange_thickness_mm, web_thickness_mm = input_plate_sizes()
+                depth_mm, flange_width_mm, flange_thickness_mm, web_thickness_mm = user_input.input_plate_sizes()
                 methods.setLocalValues4(depth_mm, flange_width_mm, flange_thickness_mm, web_thickness_mm)
             
             plate_properties = methods.calculate_plate_properties(depth_mm, flange_width_mm, flange_thickness_mm, web_thickness_mm, yield_strength_MPa)
@@ -235,7 +200,7 @@ while (True):
         elif (calculation_type == "Beam or Plate" or calculation_type == "5"):
             beam_or_plate_input_bool = input("Do you want to use preset values?: ")
             if (beam_or_plate_input_bool == "n" or beam_or_plate_input_bool == "N"):
-                limiting_ratio_h_tw = inputBeamOrPlate()
+                limiting_ratio_h_tw = user_input.inputBeamOrPlate()
                 methods.setLocalValues5(limiting_ratio_h_tw)
 
             h_tw_x_e = limiting_ratio_h_tw * epsilon4
@@ -259,7 +224,7 @@ while (True):
         elif (calculation_type == "Section Classification" or calculation_type == "6"):
             section_classification_input_bool = input("Do you want to use preset values?: ")
             if (section_classification_input_bool == "n" or section_classification_input_bool == "N"):
-                b_tf_ratio, d_tw_ratio = inputSectionClassification()
+                b_tf_ratio, d_tw_ratio = user_input.inputSectionClassification()
                 methods.setLocalValues6(b_tf_ratio, d_tw_ratio)
 
             ratio_b2_tf = flange_width_mm / 2 / flange_thickness_mm
@@ -349,7 +314,7 @@ while (True):
         elif (calculation_type == "9"):
             shear_buckling_input_bool = input("Do you want to use preset values?: ")
             if (shear_buckling_input_bool == "n" or shear_buckling_input_bool == "N"):
-                stiffner_ratio = float(input("Enter the stiffener ratio: "))
+                stiffner_ratio = float(user_input("Enter the stiffener ratio: "))
                 methods.setLocalValues9(stiffner_ratio)
 
             Kv = 0
@@ -379,7 +344,7 @@ while (True):
                 Tau_b = (yield_strength_MPa / (3**0.5 * lw**2))
 
             # Calculate Vcr
-            Vcr = (Tau_b * web_depth_mm4 * web_thickness_mm) / 1000
+            Vcr9 = Vcr = (Tau_b * web_depth_mm4 * web_thickness_mm) / 1000
 
             print(f"Kv: {Kv}")
             print(f"Elastic Critical shear Stress of the web, Tau_cr_e: {Tau_cr_e} N/mm^2")
@@ -413,41 +378,387 @@ while (True):
             calculation_type10 = input('''
                             1. Minimum Stiffners
                                 (Type - 1)
+                            2. Check For Outstand
+                                (Type - 2)
+                            3. Spacing Of Stiffners
+                                (Type - 3)
+                            4. Completion Flange Buckling Requirement
+                                (Type - 4)
+                            5. Buckling Check Of Stiffners
+                                (Type - 5)
+                            6. Bearing Stiffeners (local capacity of web)
+                                (Type - 6)
+                            7. Torsional stiffeners
+                                (Type - 7)
                             Enter your choice: 
                         ''')
             
             def innerSwitch(calculation_type10):
+                global web_depth_mm4, epsilon4, web_thickness_mm4 , c_10_1, d_tw_ratio10_3, c_d_ratio_spacing10_3, Is_intermediate10_1
 
                 minimum_stiffners_initial_values = methods.getLocalValues10_1()
                 c_d_ratio = minimum_stiffners_initial_values["c_d_ratio"]
                 width_of_flat_bs = minimum_stiffners_initial_values["width_of_flat_bs"]
                 thickness_of_flat_tq = minimum_stiffners_initial_values["thickness_of_flat_tq"]
 
+                buckling_check_initial_values = methods.getLocalValues10_5()
+                F_c_d_compressive_stress = buckling_check_initial_values["F_c_d_compressive_stress"]
+                F_x_load_acting = buckling_check_initial_values["F_x_load_acting"]
+
+                torisional_stiffener_initial_values = methods.getLocalValues10_7()
+                flat_width_bs = torisional_stiffener_initial_values["flat_width_bs"]
+                thickness_flat_tq = torisional_stiffener_initial_values["thickness_flat_tq"]
+
+
+                
+
                 if (calculation_type10 == "1"):
                     minimum_stiffners_input_bool = input("Do you want to use preset values?: ")
                     if (minimum_stiffners_input_bool == "n" or minimum_stiffners_input_bool == "N"):
-                        c_d_ratio, width_of_flat_bs, thickness_of_flat_tq = input_minimum_stiffners()
+                        c_d_ratio, width_of_flat_bs, thickness_of_flat_tq = user_input.input_minimum_stiffners()
                         methods.setLocalValues10_1(c_d_ratio, width_of_flat_bs, thickness_of_flat_tq)
                     
-                    c = c_d_ratio * web_depth_mm4
-                    Is = methods.IsFunc(thickness_of_flat_tq, width_of_flat_bs, web_thickness_mm)
+                    c10_1 = c = c_d_ratio * web_depth_mm4
+                    Is_intermediate10_1 =  Is_intermediate = methods.Is_intermediateFunc(thickness_of_flat_tq, width_of_flat_bs, web_thickness_mm)
+
+                    Is_minimum_stiffner_msg = 0
+
+                    if c_d_ratio < 1.4142136 or c_d_ratio == 1.4142136:
+                        Is_minimum_stiffner_msg = "Is=0.75dtw3"
+                    else:
+                        Is_minimum_stiffner_msg = "Is=(1.5d3tw3/c2)" 
+
+                    Is_minimum_stiffner = 0
+
+                    if c_d_ratio < 1.4142136 or c_d_ratio == 1.4142136:
+                        Is_minimum_stiffner = 0.75 * web_depth_mm4 * (web_thickness_mm**3)
+                    else:
+                        Is_minimum_stiffner = 1.5 * (web_depth_mm4**3) * (web_thickness_mm**3) / (c**2)
+
+                    if Is_intermediate > Is_minimum_stiffner or Is_intermediate == Is_minimum_stiffner:
+                        msg = "Provided Stiffener is ok"
+                    else:
+                        msg = "Revise the size of stiffener"    
                  
                     # Print the calculated values
+                    print(f"c/d ratio: {c_d_ratio} mm")
                     print(f"Spacing of Transverse stiffener (c): {c} mm")
-                    print(f"Second moment of inertia of the section (Is): {Is} mm^4")
+                    print(f"Second moment of inertia of the section (Is): {Is_intermediate} mm^4")
+                    print(f"Minimum Stiffner (Is) message: {Is_minimum_stiffner_msg} mm^4")
+                    print(f"Minimum Stiffner (Is): {Is_minimum_stiffner} mm^4")
+                    print("Message: ", msg)
 
                     data = [
-                        ("Spacing of Transverse stiffener: ", c),
-                        ("Second moment of inertia of the section (Is): ", Is)
+                        ("c/d ratio: ", c_d_ratio),
+                        ("Spacing of Transverse stiffener (c): ", c),
+                        ("Second moment of inertia of the section (Is): ", Is_intermediate),
+                        ("Minimum Stiffner (Is) message: ", Is_minimum_stiffner_msg),
+                        ("Minimum Stiffner (Is): ", Is_minimum_stiffner),
+                        ("Message: ", msg)
+
                     ]
 
                     # Append data to CSV file
                     append_to_csv('results.csv', data)  
 
+                elif (calculation_type10 == "2"):
+                    bs = width_of_flat_bs
+                    limiting_value = 14 * thickness_of_flat_tq * epsilon4
+
+                    print(f"Outstand of Stiffener, bs: {bs} mm")
+                    print(f"Limiting value 14tqε: {limiting_value} mm")
+
+                    if limiting_value > bs:
+                        print("Hence, the outstand provisions of the code are satisfied")
+                        msg = "Hence, the outstand provisions of the code are satisfied"
+                    else:
+                        print("Check for outstand is not satisfied")
+                        msg = "Check for outstand is not satisfied"
+
+                    data = [
+                        ("Outstand of Stiffener, bs (mm): ", bs),
+                        ("Limiting value 14tqε (mm): ", limiting_value),
+                        ("Message: ", msg)
+                    ]
+
+                    # Append data to CSV file
+                    append_to_csv('results.csv', data)
+
+                elif (calculation_type10 == "3"):
+                    c_d_ratio_spacing10_3 = c_d_ratio_spacing = c_10_1 / web_depth_mm4
+    
+                    d_tw_condition = 0
+                    
+                    if 1 <= c_d_ratio_spacing <= 3:
+                        d_tw_condition = 200 * epsilon4
+                    elif c_d_ratio_spacing < 1:
+                        d_tw_condition = 270 * epsilon4
+                    else:
+                        d_tw_condition = " "
+
+                    d_tw_ratio10_3 = d_tw_ratio = web_depth_mm4 / web_thickness_mm
+                    
+                    print(f"c/d ratio: {c_d_ratio_spacing} mm")
+                    print(f"d/tw <= 200ε: {d_tw_condition} mm")
+                    print(f"Section d/tw Ratio: {d_tw_ratio}")
+
+                    if (d_tw_ratio < d_tw_condition):
+                        msg = "Spacing of stiffner and Web Thickness provided is ok"
+                    else:
+                        msg = "Revise the spacing of stiffners or  thickness of web"
+                    
+                    print("Message: ", msg)
+                    
+                    data = [
+                        ("c/d ratio: ", c_d_ratio_spacing),
+                        ("d/tw <= 200ε: ", d_tw_condition),
+                        ("Section d/tw Ratio: ", d_tw_ratio),
+                        ("Message: ", msg)
+                    ]
+
+                    # Append data to CSV file
+                    append_to_csv('results.csv', data)
+
+                elif (calculation_type10 == "4"):    
+                    d_tw_ratio_compression = 0
+                    
+                    if 10_3 < 1.5:
+                        d_tw_ratio_compression = 345 * epsilon4
+                    elif c_d_ratio_spacing10_3 >= 1.5:
+                        d_tw_ratio_compression = 345 * epsilon4 * epsilon4
+                    else:
+                        d_tw_ratio_compression = " "
+                    
+                    if d_tw_ratio10_3 < d_tw_ratio_compression:
+                        msg = "Thicknes of web provided is ok"
+                    else:
+                        msg = "Revise the web thickness"
+                    
+                    print(f"d/tw ratio: {d_tw_ratio10_3}")
+                    print(f"d/tw ratio_compression: {d_tw_ratio_compression} mm")
+                    print(f"Message: {msg}")
+
+                    data = [
+                        ("d/tw ratio: ", d_tw_ratio10_3),
+                        ("d/tw ratio_compression: ", d_tw_ratio_compression),
+                        ("Message: ", msg)
+                    ]
+
+                    append_to_csv('results.csv', data)
+
+                elif (calculation_type10 == "5"):
+                    buckling_check_input_bool = input("Do you want to use preset values?: ")
+                    if (buckling_check_input_bool == "n" or buckling_check_input_bool == "N"):
+                        F_c_d_compressive_stress, F_x_load_acting = user_input.input_buckling_check()
+                        methods.setLocalValues10_5(F_c_d_compressive_stress, F_x_load_acting)
+
+                    Fq_Stiffner_Force = (max_shear_force_kN - Vcr9) / partial_safety_factor
+
+                    Effective_Length_of_Web = 20 * web_thickness_mm4
+
+                    Ix = Is_intermediate10_1 + ((Effective_Length_of_Web * 2 * (web_thickness_mm4**3)) / 12)
+
+                    Area = (Effective_Length_of_Web * 2 * web_thickness_mm4) + ((web_thickness_mm4 + width_of_flat_bs * 2) * thickness_of_flat_tq)
+
+                    rx = (Ix / Area)**0.5
+
+                    Le = 0.7 * web_depth_mm4
+
+                    l = Le / rx
+
+                    Fqd = (F_c_d_compressive_stress * Area) / 1000
+
+                    last_expression = 0
+                    if Fq_Stiffner_Force < F_x_load_acting:
+                        last_expression = F_x_load_acting / Fqd
+                    else:
+                        last_expression = ((Fq_Stiffner_Force - F_x_load_acting) / Fqd) + (F_x_load_acting / Fqd)
+
+                    if Fqd > Fq_Stiffner_Force:
+                        msg1 = "Stiffener is safe against buckling" 
+                    else:
+                        msg1 = "Stiffener is not safe against buckling"
+                     
+                    if last_expression <= 1:
+                        msg2 = "The stiffener is safe against buckling for concentrated load"
+                    else:
+                        msg2 = "The stiffener is not safe"
+
+                    print(f"Fq Stiffner Force: {Fq_Stiffner_Force}")
+                    print(f"Effective Length of Web (20tw): {Effective_Length_of_Web} mm")
+                    print(f"Moment of Inertia (Ix): {Ix} mm^4")
+                    print(f"Area: {Area} mm^2")
+                    print(f"rx (radius of gyration): {rx} mm")
+                    print(f"Le (Effective length): {Le} mm")
+                    print(f"l: {l}")
+                    print(f"Fqd (Design resistance): {Fqd} kN")
+                    print(f"((Fq - Fx) / Fqd) + (Fx / Fxd): {last_expression}")
+                    print("Message1: ", msg1)
+                    print("Message2: ", msg2)
+
+
+                    data = [
+                        ("Fq Stiffner Force: ", Fq_Stiffner_Force),
+                        ("Effective Length of Web (20tw): ", Effective_Length_of_Web),
+                        ("Moment of Inertia (Ix): ", Ix),
+                        ("Area: ", Area),
+                        ("rx (radius of gyration): ", rx),
+                        ("Le (Effective length): ", Le),
+                        ("l: ", l),
+                        ("Fqd (Design resistance): ", Fqd),
+                        ("((Fq - Fx) / Fqd) + (Fx / Fxd): ", last_expression),
+                        ("Message 1: ", msg1),
+                        ("Message 2: ", msg2)
+                    ]
+
+                    # Append data to CSV file
+                    append_to_csv('results.csv', data)
+                
+                elif (calculation_type10 == "6"):
+
+                    calculation_Type10_6 = input('''
+                            1. At Support
+                                (Type - 1)
+                            2. Away From The Support
+                                (Type - 2)
+                            Enter your choice: 
+                        ''')
+                    
+                    def innerInnerSwitch(calculation_Type10_6):
+
+                        at_support_initial_values = methods.getLocalValues10_6_1()
+                        stiff_bearing_length_b1_at_support = at_support_initial_values["stiff_bearing_length_b1_at_support"]
+                        stiff_bearing_length_b1_away_support = at_support_initial_values["stiff_bearing_length_b1_away_support"]
+
+                        if (calculation_Type10_6 == "1"):
+                            at_support_input_bool = input("Do you want to use preset values?: ")
+                            if (at_support_input_bool == "n" or at_support_input_bool == "N"):
+                                stiff_bearing_length_b1_at_support = float(input("Enter the stiffener ratio: "))
+                                methods.setLocalValues10_6_1(stiff_bearing_length_b1_at_support)
+
+                            n2 = flange_thickness_mm * 2.5
+
+                            Fw = methods.FwFunc(n2, stiff_bearing_length_b1_at_support, web_thickness_mm4, yield_strength_MPa, partial_safety_factor)
+
+                            if (Fw > max_shear_force_kN):
+                                msg = "Hence it is ok"
+                            else:
+                                msg = "Hece it is not ok"
+                            
+                            print(msg)
+
+                            print(f"n2 length obtained by dispersion through the flange to the web junction at slope of 1: 2.5 to the plane of the flange.: {n2} mm")
+                            print(f"Fw: {Fw} kN")
+                            print("Message: ", msg)
+
+                            # Prepare data for appending to CSV
+                            data = [
+                                ("n2 n2 length obtained by dispersion through the flange to the web junction at slope of 1: 2.5 to the plane of the flange: ", n2),
+                                ("Fw: ", Fw),
+                                ("Message: ", msg)
+                            ]
+
+                            # Append data to CSV file
+                            append_to_csv('results.csv', data)        
+
+
+
+                        elif (calculation_Type10_6 == "2"):
+                            away_support_input_bool = input("Do you want to use preset values?: ")
+                            if (away_support_input_bool == "n" or away_support_input_bool == "N"):
+                                stiff_bearing_length_b1_away_support = float(input("Enter the stiffener ratio: "))
+                                methods.setLocalValues10_6_1(stiff_bearing_length_b1_away_support)
+
+                            n2 = flange_thickness_mm * 2 * 2.5
+
+                            Fw = methods.FwFunc(n2, stiff_bearing_length_b1_away_support, web_thickness_mm4, yield_strength_MPa, partial_safety_factor)
+                                                    
+                            if (Fw > max_shear_force_kN):
+                                msg = "Hence it is ok"
+                            else:
+                                msg = "Hece it is not ok"
+                            
+                            print(msg)
+
+                            print(f"n2 length obtained by dispersion through the flange to the web junction at slope of 1: 2.5 to the plane of the flange.: {n2} mm")
+                            print(f"Fw: {Fw} kN")
+                            print("Message: ", msg)
+
+                            # Prepare data for appending to CSV
+                            data = [
+                                ("n2 n2 length obtained by dispersion through the flange to the web junction at slope of 1: 2.5 to the plane of the flange: ", n2),
+                                ("Fw: ", Fw),
+                                ("Message: ", msg)
+                            ]
+
+                            # Append data to CSV file
+                            append_to_csv('results.csv', data)
+                            
+
+                    innerInnerSwitch(calculation_Type10_6)
+
+                elif (calculation_type10 == "7"):
+                    torsional_stiffeners_input_bool = input("Do you want to use preset values?: ")
+                    if (torsional_stiffeners_input_bool == "n" or torsional_stiffeners_input_bool == "N"):
+                        flat_width_bs = float(input("Enter the width of flat bs: "))
+                        thickness_flat_tq = float(input("Enter the thockness of flat Tq: "))
+                        methods.setLocalValues10_7(flat_width_bs, thickness_flat_tq)
+
+                    Is = methods.IsFunc(thickness_flat_tq, flat_width_bs, web_thickness_mm4)
+
+                    a_s = methods.a_sFunc(LLT_ry)
+
+                    D3_Tef = methods.D3_TefFunc(a_s, depth_mm, flange_thickness_mm)
+
+                    if (Is >= D3_Tef):
+                        msg = "Hence provided stiffener has the necessary torsional restraint"
+                    else:
+                        msg = "provided stiffener are not torsionally restrained"
+                    
+                    print(f"Is: {Is} mm4")
+                    print(f"a_s:  {a_s} ")
+                    print(f"D3_Tef: {D3_Tef} mm4")
+                    print(f"Message: {msg}")
+
+                    data = [
+                        ("Is: ", Is),
+                        ("a_s: ", a_s),
+                        ("D3_Tef: ", D3_Tef),
+                        ("Message: ", msg)
+                    ]
+
+                    # Append data to CSV file
+                    append_to_csv('results.csv', data) 
+
+                    
+
             innerSwitch(calculation_type10)                
 
+        elif (calculation_type == "11"):
+            check_for_deflection_input_bool = input("Do you want to use preset values?: ")
+            if (check_for_deflection_input_bool == "n" or check_for_deflection_input_bool == "N"):
+                max_deflection = float(user_input("Enter the max deflection unde service road: "))
+                methods.setLocalValues9(max_deflection)
 
+            max_permisiable_deflection = unsupported_length_m * 1000 / 300
 
+            if (max_deflection < max_permisiable_deflection):
+                msg = "Section is safe in deflection"
+            else:
+                msg = "Section is not safe in deflection"
+
+            print(f"Max Deflection: {max_deflection}")
+            print(f"Max permissiable deflection: {max_permisiable_deflection}")
+            print(f"Message: {msg}")
+
+            data = [
+                ("Max Deflection: ", max_deflection),
+                ("Max permissiable deflection: ", max_permisiable_deflection),
+                ("Message: ", msg)
+            ]
+
+            # Write data to CSV file
+            write_to_csv('results.csv', data)
 
     switch(calculation_type)
 
