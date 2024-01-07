@@ -34,7 +34,7 @@ This Python script is designed to assist engineers and researchers in performing
 1. Clone the repository:
 
     ```bash
-    git clone https://github.com/SwayamBadhe/Civil-Project.git
+    git clone https://github.com/SwayamBadhe/Python-Plate-Girder-Analysis.git
     ```
 
 2. Run the script:
